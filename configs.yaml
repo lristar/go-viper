@@ -1,0 +1,16 @@
+settings:
+  application:
+    # dev开发环境 test测试环境 prod线上环境
+    mode: dev
+    # 服务器ip，默认使用 0.0.0.0
+    host: 0.0.0.0
+    # 服务名称
+    name:  DemoApp
+    # 服务端口号
+    port: 8000
+    # 读超时(s)
+    readtimeout: 10
+    # 写超时(s)
+    writertimeout: 2
+    # 数据权限功能开关
+    enabledp: false
