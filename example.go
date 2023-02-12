@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"myproject/go-viper/configs"
+	"github.com/lristar/go-viper/configs"
 )
 
 var (
@@ -44,7 +44,7 @@ type Settings struct {
 var _cfg *Settings
 
 func main() {
-	configs.Setup(*configFileName, &_cfg)
+	_ = configs.Setup(*configFileName, &_cfg)
 	marshal, err := json.Marshal(_cfg)
 	if err != nil {
 		fmt.Println(err)
