@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/lristar/go-viper/configs"
+	"time"
 )
 
 var (
@@ -44,10 +45,18 @@ type Settings struct {
 var _cfg *Settings
 
 func main() {
-	_ = configs.Setup(*configFileName, &_cfg)
+	_ = configs.Setup("configs", &_cfg, configs.OpenWatchFile(), configs.AddConfigPath("."))
 	marshal, err := json.Marshal(_cfg)
 	if err != nil {
 		fmt.Println(err)
 	}
 	fmt.Println("序列化config: \n", string(marshal))
+
+	time.Sleep(time.Minute)
+
+	marshal, err = json.Marshal(_cfg)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("序列化config2: \n", string(marshal))
 }

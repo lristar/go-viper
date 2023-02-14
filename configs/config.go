@@ -2,6 +2,7 @@ package configs
 
 import (
 	"fmt"
+	"github.com/fsnotify/fsnotify"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"net/url"
@@ -23,8 +24,10 @@ type (
 	options struct {
 		env                  bool
 		openRemoteConfig     bool
+		configPath           []string
 		remoteConfigEndPoint []string
 		defaultTag           string
+		openWatchFile        bool
 	}
 )
 
@@ -36,6 +39,12 @@ func (o *options) ResetTag(m *mapstructure.DecoderConfig) {
 	m.TagName = o.defaultTag
 	if o.defaultTag == "" {
 		m.TagName = defaultTag
+	}
+}
+
+func AddConfigPath(configPath ...string) Option {
+	return func(opt *options) {
+		opt.configPath = configPath
 	}
 }
 
@@ -60,6 +69,12 @@ func ResetTag(tag string) Option {
 	}
 }
 
+func OpenWatchFile() Option {
+	return func(opt *options) {
+		opt.openWatchFile = true
+	}
+}
+
 // Setup 载入配置文件
 func Setup(configName string, cfg interface{}, ops ...Option) error {
 	var urls *url.URL
@@ -73,8 +88,12 @@ func Setup(configName string, cfg interface{}, ops ...Option) error {
 	if opt.env {
 		v.AutomaticEnv()
 	}
+	v.SetConfigName(configName)
 	//配置文件位置
-	v.SetConfigFile(configName)
+	for i := range opt.configPath {
+		v.AddConfigPath(opt.configPath[i])
+	}
+	v.SetConfigType("yaml")
 	//读文件到viper配置中
 	err = v.ReadInConfig()
 	if err != nil {
@@ -94,6 +113,14 @@ func Setup(configName string, cfg interface{}, ops ...Option) error {
 		if err = v.ReadRemoteConfig(); err != nil {
 			return err
 		}
+	}
+	if opt.openWatchFile {
+		v.OnConfigChange(func(in fsnotify.Event) {
+			if err = v.Unmarshal(cfg, opt.ResetTag); err != nil {
+				return
+			}
+		})
+		v.WatchConfig()
 	}
 	// 系列化成config对象
 	if err = v.Unmarshal(cfg, opt.ResetTag); err != nil {
